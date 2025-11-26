@@ -1,4 +1,4 @@
-import { HRPC as WdkManager } from '@tetherto/pear-wrk-wdk';
+import { HRPC as WdkManager } from '@spacesops/pear-wrk-wdk';
 // @ts-expect-error - bundle file doesn't have type definitions
 import wdkWorkletBundle from './wdk-worklet.mobile.bundle.js';
 import b4a from 'b4a';

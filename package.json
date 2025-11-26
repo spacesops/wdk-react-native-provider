@@ -1,5 +1,5 @@
 {
-  "name": "@tetherto/wdk-react-native-provider",
+  "name": "@spacesops/wdk-react-native-provider",
   "version": "1.0.0-beta.3",
   "description": "React Native library providing wallet context and WDK service integration",
   "main": "./lib/module/index.js",
@@ -39,8 +39,9 @@
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
+    "postinstall": "node scripts/fix-pear-wrk-wdk.js",
     "prepare": "bob build && npm run gen:secret-manager-bundle && npm run gen:worker-bundle",
-    "gen:worker-bundle": "npx bare-pack --target ios-arm64 --target ios-arm64-simulator --target ios-x64-simulator --target android-arm --target android-arm64 --target android-ia32 --target android-x64 --linked --imports node_modules/@tetherto/pear-wrk-wdk/pack.imports.json --out lib/module/services/wdk-service/wdk-worklet.mobile.bundle.js node_modules/@tetherto/pear-wrk-wdk/src/wdk-worklet.js",
+    "gen:worker-bundle": "npx bare-pack --target ios-arm64 --target ios-arm64-simulator --target ios-x64-simulator --target android-arm --target android-arm64 --target android-ia32 --target android-x64 --linked --imports node_modules/@spacesops/pear-wrk-wdk/pack.imports.json --out lib/module/services/wdk-service/wdk-worklet.mobile.bundle.js node_modules/@spacesops/pear-wrk-wdk/src/wdk-worklet.js",
     "gen:secret-manager-bundle": "npx bare-pack --target ios-arm64 --target ios-arm64-simulator --target ios-x64-simulator --target android-arm --target android-arm64 --target android-ia32 --target android-x64 --linked --out lib/module/services/wdk-service/wdk-secret-manager-worklet.bundle.js src/worklet/wdk-secret-manager-worklet.js"
   },
   "keywords": [
@@ -84,7 +85,7 @@
   "peerDependencies": {
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "@tetherto/pear-wrk-wdk": "^1.0.0-beta.4",
+    "@spacesops/pear-wrk-wdk": "^1.0.0-beta.7",
     "@tetherto/wdk-secret-manager": "^1.0.0-beta.3",
     "b4a": "^1.7.2",
     "bip39": "^3.1.0",

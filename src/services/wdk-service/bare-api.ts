@@ -1,4 +1,4 @@
-import { HRPC as wdkManagerHRPC } from '@tetherto/pear-wrk-wdk';
+import { HRPC as wdkManagerHRPC } from '@spacesops/pear-wrk-wdk';
 import { Worklet } from 'react-native-bare-kit';
 // @ts-expect-error - spec files don't have type definitions
 import HRPC from '../../spec/hrpc';

@@ -71,7 +71,7 @@ This library requires several peer dependencies. Install them using:
 npm install \
   @craftzdog/react-native-buffer \
   @react-native-async-storage/async-storage \
-  @tetherto/pear-wrk-wdk \
+  @spacesops/pear-wrk-wdk \
   @tetherto/wdk-secret-manager \
   b4a \
   bip39 \
@@ -687,7 +687,7 @@ import type {
 } from '@tetherto/wdk-react-native-provider';
 ```
 
-**Note:** Chain configuration types (`ChainsConfig`, `EVMChainConfig`, `TONChainConfig`, etc.) are defined in the underlying `@tetherto/pear-wrk-wdk` package. TypeScript will infer these types when you use them in the `WalletProviderConfig`, so explicit imports are typically not needed.
+**Note:** Chain configuration types (`ChainsConfig`, `EVMChainConfig`, `TONChainConfig`, etc.) are defined in the underlying `@spacesops/pear-wrk-wdk` package. TypeScript will infer these types when you use them in the `WalletProviderConfig`, so explicit imports are typically not needed.
 
 ## Security Considerations
 
