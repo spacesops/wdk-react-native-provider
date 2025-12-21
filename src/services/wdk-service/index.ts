@@ -1,4 +1,4 @@
-import { HRPC as WdkManager } from '@spacesops/pear-wrk-wdk';
+import { HRPC as WdkManager } from '@tetherto/pear-wrk-wdk';
 // @ts-expect-error - bundle file doesn't have type definitions
 import wdkWorkletBundle from './wdk-worklet.mobile.bundle.js';
 import b4a from 'b4a';
@@ -172,15 +172,7 @@ class WDKService {
   async clearWallet(): Promise<void> {
     try {
       // 1. Gracefully stop worklet operations if they're running
-      if (this.wdkManager) {
-        try {
-          await this.wdkManager.workletStop();
-        } catch (error) {
-          // Worklet might not be started, ignore
-          console.warn('Could not stop wdkManager worklet:', error);
-        }
-      }
-
+      // Note: wdkManager HRPC doesn't have a workletStop method, only secretManager does
       if (this.secretManager) {
         try {
           await this.secretManager.commandWorkletStop();
@@ -419,6 +411,10 @@ class WDKService {
     asset: AssetTicker
   ) {
     try {
+      if (!this.wdkManager) {
+        throw new Error('WDK Manager not initialized');
+      }
+
       if (network === NetworkType.SEGWIT) {
         const value = new Decimal(amount)
           .mul(this.getDenominationValue(AssetTicker.BTC))
