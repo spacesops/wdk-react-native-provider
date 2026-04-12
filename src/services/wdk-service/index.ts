@@ -35,6 +35,9 @@ export const SMART_CONTRACT_BALANCE_ADDRESSES = {
     arbitrum: '0x40461291347e1eCbb09499F3371D3f17f10d7159',
     ton: 'EQA1R_LuQCLHlMgOo1S4G7Y7W1cd0FrAkbA10Zq7rddKxi9k',
   },
+  [AssetTicker.USAT]: { 
+    ethereum: '0x07041776f5007ACa2A54844F50503a18A72A8b68',
+  },
 };
 
 const toNetwork = (n: NetworkType): string => {
@@ -481,6 +484,189 @@ class WDKService {
     }
   }
 
+  async quoteSendByNetworkTX(
+    network: NetworkType,
+    index: number,
+    amount: number,
+    recipientAddress: string,
+    _asset: AssetTicker
+  ): Promise<string> {
+    try {
+      if (!this.wdkManager) {
+        throw new Error('WDK Manager not initialized');
+      }
+
+      if (network === NetworkType.SEGWIT) {
+        const value = new Decimal(amount)
+          .mul(this.getDenominationValue(AssetTicker.BTC))
+          .toNumber();
+        const result = await this.wdkManager.quoteSendTransactionTX({
+          network: 'bitcoin',
+          accountIndex: index,
+          options: {
+            to: recipientAddress,
+            value: value.toString(),
+            confirmationTarget: 1,
+          },
+        });
+
+        // The RPC returns { txHex }, so extract the txHex string
+        return typeof result === 'string' ? result : result.txHex || result;
+      } else {
+        throw new Error('quoteSendTransactionTX is only supported for Bitcoin (SEGWIT) network');
+      }
+    } catch (error) {
+      const insufficientBalancePatterns = [
+        'Insufficient balance',
+        'Details: validator: callData reverts',
+        'JSON is not a valid request object',
+      ];
+
+      if (
+        insufficientBalancePatterns.some((pattern) =>
+          (error as any)?.message?.includes(pattern)
+        )
+      ) {
+        throw new Error('Insufficient balance');
+      }
+
+      throw error;
+    }
+  }
+
+  async quoteSendByNetworkWithMemo(
+    network: NetworkType,
+    index: number,
+    amount: number,
+    recipientAddress: string,
+    asset: AssetTicker,
+    memo: string
+  ) {
+    try {
+      if (!this.wdkManager) {
+        throw new Error('WDK Manager not initialized');
+      }
+
+      if (network === NetworkType.SEGWIT) {
+        const value = new Decimal(amount)
+          .mul(this.getDenominationValue(AssetTicker.BTC))
+          .toNumber();
+        const quote = await this.wdkManager.quoteSendTransactionWithMemo({
+          network: 'bitcoin',
+          accountIndex: index,
+          options: {
+            to: recipientAddress,
+            value: value.toString(),
+            memo: memo,
+            confirmationTarget: 1,
+          },
+        });
+
+        return Number(quote.fee) / this.getDenominationValue(AssetTicker.BTC);
+      } else if (
+        [
+          NetworkType.ETHEREUM,
+          NetworkType.POLYGON,
+          NetworkType.ARBITRUM,
+          NetworkType.TON,
+        ].includes(network)
+      ) {
+        const sendAmount = 1000;
+
+        const config = {
+          paymasterToken: {
+            // @ts-expect-error
+            address: SMART_CONTRACT_BALANCE_ADDRESSES[asset][network],
+          },
+        };
+
+        const quote = await this.wdkManager.abstractedAccountQuoteTransfer({
+          network: network,
+          accountIndex: index,
+          options: {
+            recipient: recipientAddress,
+            // @ts-expect-error
+            token: SMART_CONTRACT_BALANCE_ADDRESSES[asset][network],
+            amount: sendAmount.toString(),
+          },
+          config: config,
+        });
+
+        return Number(quote.fee) / this.getDenominationValue(AssetTicker.USDT);
+      } else {
+        throw new Error('Unsupported network');
+      }
+    } catch (error) {
+      const insufficientBalancePatterns = [
+        'Insufficient balance',
+        'Details: validator: callData reverts',
+        'JSON is not a valid request object',
+      ];
+
+      if (
+        insufficientBalancePatterns.some((pattern) =>
+          (error as any)?.message?.includes(pattern)
+        )
+      ) {
+        throw new Error('Insufficient balance');
+      }
+
+      throw error;
+    }
+  }
+
+  async quoteSendByNetworkWithMemoTX(
+    network: NetworkType,
+    index: number,
+    amount: number,
+    recipientAddress: string,
+    _asset: AssetTicker,
+    memo: string
+  ): Promise<string> {
+    try {
+      if (!this.wdkManager) {
+        throw new Error('WDK Manager not initialized');
+      }
+
+      if (network === NetworkType.SEGWIT) {
+        const value = new Decimal(amount)
+          .mul(this.getDenominationValue(AssetTicker.BTC))
+          .toNumber();
+        const result = await this.wdkManager.quoteSendTransactionWithMemoTX({
+          network: 'bitcoin',
+          accountIndex: index,
+          options: {
+            to: recipientAddress,
+            value: value.toString(),
+            memo: memo,
+            confirmationTarget: 1,
+          },
+        });
+
+        // The RPC returns { txHex }, so extract the txHex string
+        return typeof result === 'string' ? result : result.txHex || result;
+      } else {
+        throw new Error('quoteSendTransactionWithMemoTX is only supported for Bitcoin (SEGWIT) network');
+      }
+    } catch (error) {
+      const insufficientBalancePatterns = [
+        'Insufficient balance',
+        'Details: validator: callData reverts',
+        'JSON is not a valid request object',
+      ];
+
+      if (
+        insufficientBalancePatterns.some((pattern) =>
+          (error as any)?.message?.includes(pattern)
+        )
+      ) {
+        throw new Error('Insufficient balance');
+      }
+
+      throw error;
+    }
+  }
+
   async sendByNetwork(
     network: NetworkType,
     index: number,
@@ -554,6 +740,82 @@ class WDKService {
     }
   }
 
+  async sendByNetworkWithMemo(
+    network: NetworkType,
+    index: number,
+    amount: number,
+    recipientAddress: string,
+    asset: AssetTicker,
+    memo: string
+  ): Promise<any> {
+    if (!this.wdkManager) {
+      throw new Error('WDK Manager not initialized');
+    }
+
+    // Check if any wallet exists and the WDK Manager is started with a seed
+    const hasWallet = this.walletManagerCache.size > 0;
+    if (!hasWallet) {
+      throw new Error(
+        'No wallet found. Please create or import a wallet first before sending transactions.'
+      );
+    }
+
+    if (network === NetworkType.SEGWIT) {
+      const sendParams = {
+        to: recipientAddress,
+        value: new Decimal(amount)
+          .mul(this.getDenominationValue(AssetTicker.BTC))
+          .round()
+          .toString(),
+        memo: memo,
+        confirmationTarget: 1,
+      };
+
+      const response = await this.wdkManager.sendTransactionWithMemo({
+        network: network,
+        accountIndex: index,
+        options: sendParams,
+      });
+
+      return response;
+    } else if (
+      [
+        NetworkType.ETHEREUM,
+        NetworkType.POLYGON,
+        NetworkType.ARBITRUM,
+        NetworkType.TON,
+      ].includes(network)
+    ) {
+      const sendParams = {
+        recipient: recipientAddress,
+        // @ts-expect-error
+        token: SMART_CONTRACT_BALANCE_ADDRESSES[asset][network],
+        amount: new Decimal(amount)
+          .mul(this.getDenominationValue(AssetTicker.USDT))
+          .round()
+          .toString(),
+      };
+
+      const config = {
+        paymasterToken: {
+          // @ts-expect-error
+          address: SMART_CONTRACT_BALANCE_ADDRESSES[asset][network],
+        },
+      };
+
+      const response = await this.wdkManager.abstractedAccountTransfer({
+        network: network,
+        accountIndex: index,
+        options: sendParams,
+        config,
+      });
+
+      return response;
+    } else {
+      throw new Error('Unsupported network');
+    }
+  }
+
   getDenominationValue(asset: AssetTicker): number {
     switch (asset) {
       case AssetTicker.BTC:
@@ -561,6 +823,8 @@ class WDKService {
       case AssetTicker.USDT:
         return 1000000;
       case AssetTicker.XAUT:
+        return 1000000;
+      case AssetTicker.USAT:
         return 1000000;
       default:
         return 1000000;
@@ -582,6 +846,7 @@ class WDKService {
       AssetTicker.BTC,
       AssetTicker.USDT,
       AssetTicker.XAUT,
+      AssetTicker.USAT,
     ];
 
     const wallet: Wallet = {
@@ -742,11 +1007,14 @@ class WDKService {
     const balanceMap = Object.entries(
       data as Record<
         string,
-        { tokenBalance: { amount: number; blockchain: string; token: string } }
+        { tokenBalance?: { amount: number; blockchain: string; token: string } }
       >
     ).reduce(
       (allBalances, [_, value]) => {
-        const obj = (value as any).tokenBalance;
+        const obj = (value as any)?.tokenBalance;
+        if (!obj || !obj.blockchain || !obj.token) {
+          return allBalances; // Skip invalid entries
+        }
         allBalances[`${obj.blockchain}_${obj.token}`] = {
           balance: parseFloat(obj.amount),
           asset: obj.token as AssetTicker,

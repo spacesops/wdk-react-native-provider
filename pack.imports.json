@@ -1,0 +1,7 @@
+{
+  "http": "bare-http1",
+  "http2": "bare-http1",
+  "bufferutil": "bufferutil",
+  "utf-8-validate": "utf-8-validate",
+  "sodium-native": "sodium-native"
+}

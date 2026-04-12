@@ -2,6 +2,7 @@ export enum AssetTicker {
   BTC = 'btc',
   USDT = 'usdt',
   XAUT = 'xaut',
+  USAT = 'usat',
 }
 
 export enum NetworkType {
@@ -28,6 +29,9 @@ export const AssetAddressMap = {
   [AssetTicker.XAUT]: {
     [NetworkType.ETHEREUM]: 'ethereum',
   },
+  [AssetTicker.USAT]: {
+    [NetworkType.ETHEREUM]: 'ethereum',
+  },
 };
 
 export const AssetBalanceMap = {
@@ -41,6 +45,9 @@ export const AssetBalanceMap = {
     [NetworkType.TON]: 'ton',
   },
   [AssetTicker.XAUT]: {
+    [NetworkType.ETHEREUM]: 'ethereum',
+  },
+  [AssetTicker.USAT]: {
     [NetworkType.ETHEREUM]: 'ethereum',
   },
 };

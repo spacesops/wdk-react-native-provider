@@ -109,22 +109,22 @@ export function WalletProvider({
     }
   };
 
-  const getWalletAddresses = async (enabledAssets: AssetTicker[]) => {
+  const getWalletAddresses = async (
+    enabledAssets: AssetTicker[]
+  ): Promise<AddressMap> => {
     try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY_ADDRESSES);
-      if (stored) {
-        return JSON.parse(stored);
-      } else {
-        const addresses =
-          await WDKService.resolveWalletAddresses(enabledAssets);
-        await AsyncStorage.setItem(
-          STORAGE_KEY_ADDRESSES,
-          JSON.stringify(addresses)
-        );
-        return addresses;
-      }
+      // Always resolve from WDK — do not trust cached AsyncStorage alone. Stale addresses
+      // (e.g. after chain config / derivation changes) caused UI to show one bc1p while
+      // the worklet spent from another, breaking Electrum UTXO lookup and balance vs spend.
+      const addresses = await WDKService.resolveWalletAddresses(enabledAssets);
+      await AsyncStorage.setItem(
+        STORAGE_KEY_ADDRESSES,
+        JSON.stringify(addresses)
+      );
+      return addresses;
     } catch (error) {
       console.error('Failed to get wallet addresses:', error);
+      throw error;
     }
   };
 

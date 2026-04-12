@@ -5,7 +5,7 @@ A React Native library providing wallet context and WDK (Wallet Development Kit)
 ## Features
 
 - **Multi-chain Support**: Bitcoin, Ethereum, Polygon, Arbitrum, TON, Solana, and Tron
-- **Multi-asset Management**: BTC, USDT, XAUT, and more
+- **Multi-asset Management**: BTC, USDT, XAUT, USAT, and more
 - **Secure Seed Management**: Encrypted seed phrase storage using native keychain
 - **React Context API**: Easy-to-use wallet context provider and hooks
 - **Account Management**: Create, import, and unlock wallets
@@ -665,6 +665,7 @@ import { AssetTicker } from '@tetherto/wdk-react-native-provider';
 AssetTicker.BTC   // Bitcoin
 AssetTicker.USDT  // Tether USD
 AssetTicker.XAUT  // Tether Gold
+AssetTicker.USAT  // Tether USAT
 ```
 
 ## TypeScript Support

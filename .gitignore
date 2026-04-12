@@ -86,3 +86,10 @@ android/generated
 nitrogen/
 
 .npmrc
+
+# Temporary backup files (created by editors/tools)
+.*-*
+.node_modules-*/
+
+# Publish scripts (if not needed in repo)
+scripts/prepare-for-publish.*
