@@ -57,6 +57,9 @@ export class BareWorkletApi {
           BareWorkletApi.hrpcInstances[instance] = new wdkManagerHRPC(
             BareWorkletApi.bareInstances[instance].IPC
           );
+          BareWorkletApi.registerWdkManagerLog(
+            BareWorkletApi.hrpcInstances[instance]
+          );
           break;
       }
       return BareWorkletApi.bareInstances[instance];
@@ -72,6 +75,14 @@ export class BareWorkletApi {
       if (data.type === logEnums.info) console.info(data.data);
       if (data.type === logEnums.error) console.error(data.data);
       if (data.type === logEnums.debug) console.debug(data.data);
+    });
+  }
+
+  static registerWdkManagerLog(instance: any): void {
+    // log-type-enum from @wdk-core: info=1, error=2, debug=3
+    instance.onLog((data: any) => {
+      if (data.type === 2) console.error(data.data);
+      else console.log(data.data);
     });
   }
 
