@@ -18,13 +18,15 @@ for (const pkgPath of packagePaths) {
   const bundlePath = path.join(pkgPath, 'bundle', 'wdk-worklet.mobile.bundle.js');
   const packageName = pkgPath.includes('@spacesops') ? '@spacesops/pear-wrk-wdk' : '@tetherto/pear-wrk-wdk';
 
-  // Create symlink if package exists and symlink doesn't
+  // Create symlink so bare-pack resolves dependencies from the provider's
+  // hoisted node_modules. Use an absolute path so it works regardless of
+  // whether pear-wrk-wdk itself is a file: symlink or an npm-installed copy.
+  const providerNodeModules = path.resolve(__dirname, '..', 'node_modules');
   if (!fs.existsSync(nmPath)) {
     try {
-      fs.symlinkSync('../../..', nmPath, 'dir');
-      console.log(`Created symlink for ${packageName} node_modules`);
+      fs.symlinkSync(providerNodeModules, nmPath, 'dir');
+      console.log(`Created symlink for ${packageName} node_modules -> ${providerNodeModules}`);
     } catch (error) {
-      // Symlink might already exist or be a file, ignore
       if (error.code !== 'EEXIST') {
         console.warn(`Warning: Could not create symlink for ${packageName}:`, error.message);
       }
