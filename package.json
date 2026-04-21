@@ -40,7 +40,11 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
     "postinstall": "node scripts/fix-pear-wrk-wdk.js && node scripts/fix-pack-imports.js",
-    "prepare": "bob build && npm run gen:secret-manager-bundle && npm run gen:worker-bundle",
+    "emit:module": "tsc -p tsconfig.emit-module.json",
+    "emit:typescript": "tsc -p tsconfig.emit-dts.json",
+    "emit:lib": "node scripts/emit-lib.js",
+    "prepare": "npm run emit:lib && npm run gen:secret-manager-bundle && npm run gen:worker-bundle",
+    "prepare:bob": "bob build && npm run gen:secret-manager-bundle && npm run gen:worker-bundle",
     "prepare:publish": "npm install --ignore-scripts && npm run postinstall && npm run prepare",
     "gen:worker-bundle": "npx bare-pack --host ios-arm64 --host ios-arm64-simulator --host ios-x64-simulator --host android-arm --host android-arm64 --host android-ia32 --host android-x64 --linked --imports node_modules/@tetherto/pear-wrk-wdk/pack.imports.json --out lib/module/services/wdk-service/wdk-worklet.mobile.bundle.js node_modules/@tetherto/pear-wrk-wdk/src/wdk-worklet.js",
     "gen:secret-manager-bundle": "npx bare-pack --host ios-arm64 --host ios-arm64-simulator --host ios-x64-simulator --host android-arm --host android-arm64 --host android-ia32 --host android-x64 --linked --imports pack.imports.json --out lib/module/services/wdk-service/wdk-secret-manager-worklet.bundle.js src/worklet/wdk-secret-manager-worklet.js"

@@ -362,6 +362,79 @@ class WDKService {
     }
   }
 
+  /**
+   * Derive Taproot (BIP-86) receive addresses for wallet-relative path suffixes
+   * (e.g. 9'/0/0), matching WalletManagerBtc.getAccountByPath.
+   */
+  async deriveTaprootAddressesFromPaths(
+    relativePaths: string[]
+  ): Promise<{ addressesJson: string }> {
+    if (!this.wdkManager) {
+      throw new Error('WDK Manager not initialized');
+    }
+    return await this.wdkManager.deriveTaprootAddressesFromPaths({
+      relativePathsJson: JSON.stringify(relativePaths),
+    });
+  }
+
+  /**
+   * Quote an on-chain Spaces update tx (taproot destination + OP_RETURN wire hex + prior 1077-sat UTXO).
+   * Returns signed raw hex and estimated network fee (satoshis as string); does not broadcast.
+   */
+  async quoteUpdateTransactionWithHexTX(params: {
+    network: string;
+    fundingAccountIndex: number;
+    options: {
+      to: string;
+      hex: string;
+      priorTx: string;
+      priorAccountRelativePath: string;
+      value?: string;
+      feeRate?: string;
+      confirmationTarget?: number;
+    };
+  }): Promise<{ txHex: string; fee?: string }> {
+    if (!this.wdkManager) {
+      throw new Error('WDK Manager not initialized');
+    }
+    const result = await this.wdkManager.quoteUpdateTransactionWithHexTX(params);
+    if (typeof result === 'string') {
+      return { txHex: result };
+    }
+    const r = result as { txHex?: string; hex?: string; fee?: string };
+    return {
+      txHex: r.txHex ?? r.hex ?? '',
+      fee: r.fee,
+    };
+  }
+
+  /**
+   * Broadcast an on-chain Spaces update tx (same parameters as quote).
+   */
+  async updateTransactionWithHex(params: {
+    network: string;
+    fundingAccountIndex: number;
+    options: {
+      to: string;
+      hex: string;
+      priorTx: string;
+      priorAccountRelativePath: string;
+      value?: string;
+      feeRate?: string;
+      confirmationTarget?: number;
+    };
+  }): Promise<{ hash: string; fee: string }> {
+    if (!this.wdkManager) {
+      throw new Error('WDK Manager not initialized');
+    }
+    const result = await this.wdkManager.updateTransactionWithHex(params);
+    const o = result as { hash?: string; fee?: string | bigint };
+    return {
+      hash: o.hash != null ? String(o.hash) : '',
+      fee: o.fee != null ? String(o.fee) : '0',
+    };
+  }
+
   async resolveWalletAddresses(
     enabledAssets: AssetTicker[],
     index: number = 0
